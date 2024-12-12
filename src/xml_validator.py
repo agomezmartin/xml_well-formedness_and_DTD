@@ -1,11 +1,8 @@
-# src/xml_validator.py
 import os
 import xml.etree.ElementTree as ET
 from lxml import etree
 from . import messages
 from datetime import datetime
-import tkinter as tk
-from tkinter import filedialog, messagebox
 
 # Function to validate XML well-formedness
 def validate_xml(file_path, well_formed_only=True, dtd_xsd_file=None):
@@ -35,19 +32,6 @@ def validate_xml(file_path, well_formed_only=True, dtd_xsd_file=None):
         except etree.DocumentInvalid as e:
             return False, messages.DTD_XSD_INVALID.format(os.path.basename(file_path)) + f"\n{messages.PARSE_ERROR.format(e)}"
 
-# Function to allow the user to select the directory containing XML files
-def select_directory(filedialog):
-    directory = filedialog.askdirectory(title=messages.SELECT_DIRECTORY)
-    return directory
-
-# Function to allow the user to select the path to save the log
-def save_log_path(filedialog):
-    log_dir = filedialog.askdirectory(title=messages.SELECT_LOG_DIRECTORY)
-    if log_dir:
-        log_filename = filedialog.asksaveasfilename(initialdir=log_dir, defaultextension=".txt", filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
-        return log_filename
-    return None
-
 # Function to validate all XML files in a given directory and log the results
 def validate_all_xml_files(directory, log_file, well_formed_only=True, dtd_xsd_file=None):
     try:
@@ -71,48 +55,6 @@ def validate_all_xml_files(directory, log_file, well_formed_only=True, dtd_xsd_f
                 log.write(f"{messages.ERROR_MESSAGE.format(message)}\n")
                 log.write(messages.LOG_SEPARATOR + "\n")
             
-            return messages.LOG_SAVED + log_file
+            return messages.LOG_SAVED.format(log_file)
     except Exception as e:
-        return messages.LOG_FILE_ERROR + str(e)
-
-# GUI functions for the application
-
-# Function to create and show the GUI
-def create_gui():
-    # Create the main window
-    root = tk.Tk()
-    root.title("XML Validator with Log")
-    root.geometry("400x300")  # Width x Height
-
-    def validate_well_formed():
-        directory = select_directory(filedialog)
-        if directory:
-            log_file = save_log_path(filedialog)
-            if log_file:
-                result = validate_all_xml_files(directory, log_file, well_formed_only=True)
-                messagebox.showinfo("Log Saved", result)
-    
-    def validate_with_dtd_xsd():
-        directory = select_directory(filedialog)
-        if directory:
-            log_file = save_log_path(filedialog)
-            if log_file:
-                dtd_xsd_file = filedialog.askopenfilename(title="Select DTD/XSD File", filetypes=[("XML Schema", "*.xsd"), ("DTD File", "*.dtd")])
-                if dtd_xsd_file:
-                    result = validate_all_xml_files(directory, log_file, well_formed_only=False, dtd_xsd_file=dtd_xsd_file)
-                    messagebox.showinfo("Log Saved", result)
-
-    # Add a button to validate well-formed XML files
-    validate_well_formed_button = tk.Button(root, text="Validate Well-Formed XML", command=validate_well_formed)
-    validate_well_formed_button.pack(pady=20)
-
-    # Add a button to validate XML files against a DTD/XSD file
-    validate_dtd_xsd_button = tk.Button(root, text="Validate XML with DTD/XSD", command=validate_with_dtd_xsd)
-    validate_dtd_xsd_button.pack(pady=20)
-
-    # Run the application
-    root.mainloop()
-
-# Function to start the application
-def run_gui():
-    create_gui()
+        return messages.LOG_FILE_ERROR.format(str(e))
